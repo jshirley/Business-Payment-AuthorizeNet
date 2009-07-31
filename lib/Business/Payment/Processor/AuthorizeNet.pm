@@ -70,7 +70,7 @@ sub prepare_data {
     if ( defined $charge->credit_card ) {
         $data{x_method}   = 'CC';
         $data{x_card_num} = $charge->credit_card->number;
-        $data{x_exp_date} = $charge->credit_card->expdate;
+        $data{x_exp_date} = $charge->credit_card->expiration_formatted('%m%y');
     }
     $charge->type eq 'VOID' ?
         $data{'x_Method'} = 'VOID' :

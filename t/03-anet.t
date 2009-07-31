@@ -25,7 +25,8 @@ my $charge = $bp->charge(
     address   => '1234 Any St',
     credit_card => Business::Payment::CreditCard->new(
         number     => '4111111111111111',
-        expiration => DateTime->new( year => 2015, month => 10 )
+        expiration => '10/15',
+        amount      => 10
     )
 );
 isa_ok($charge, 'Business::Payment::Charge', 'charge object');
