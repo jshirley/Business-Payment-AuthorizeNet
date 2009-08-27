@@ -93,10 +93,6 @@ sub prepare_data {
 sub prepare_result {
     my ( $self, $page, $response ) = @_;
 
-use Data::Dump 'dump';
-warn "Page: " . dump($page);
-warn "Response: " . dump($response);
-
     my $char = $self->delim_char;
     my @data = split( /\Q$char/, $page );
     my $index = 0;
