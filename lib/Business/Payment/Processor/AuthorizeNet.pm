@@ -8,6 +8,14 @@ use Business::Payment::Result;
 with 'Business::Payment::Processor',
      'Business::Payment::SSL';
 
+has 'refund_roles' => (
+    is => 'ro',
+    isa => 'ArrayRef[Str]',
+    default => sub { [
+        qw/Customer Refund/
+    ] }
+);
+
 has 'charge_roles' => (
     is => 'ro',
     isa => 'ArrayRef[Str]',
@@ -60,8 +68,15 @@ sub prepare_data {
         x_delim_data        => "TRUE",
         x_delim_char        => $self->delim_char,
         x_relay_response    => "FALSE",
-
+        x_first_name        => $charge->first_name,
+        x_last_name         => $charge->last_name,
+        x_address           => $charge->address,
     );
+    foreach my $field ( qw/customer_id first_name last_name address city state postal country/ ) {
+        next unless $charge->can($field);
+        my $value = $charge->$field;
+        $data{"x_$field"} = $value if defined $value;
+    }
 
     if ( $self->email_customer ) {
         $data{'x_Email_Customer'} = 'TRUE';
@@ -73,20 +88,26 @@ sub prepare_data {
         $data{x_exp_date} = $charge->credit_card->expiration_formatted('%m%y');
     }
     $charge->type eq 'VOID' ?
-        $data{'x_Method'} = 'VOID' :
+        $data{'x_type'} = 'VOID' :
     $charge->type eq 'CREDIT' ?
-        $data{'x_Method'} = 'CREDIT' :
+        $data{'x_type'} = 'CREDIT' :
     $charge->type eq 'CHARGE' ?
-        $data{'x_Method'} = 'AUTH_CAPTURE' :
+        $data{'x_type'} = 'AUTH_CAPTURE' :
     $charge->type eq 'AUTH' ?
-        $data{'x_Method'} = 'AUTH_ONLY' :
+        $data{'x_type'} = 'AUTH_ONLY' :
     $charge->type eq 'CAPTURE' ?
-        $data{'x_Method'} = 'PRIOR_AUTH_CAPTURE' :
+        $data{'x_type'} = 'PRIOR_AUTH_CAPTURE' :
     # Unknown charge type, end it here
         croak "Unknown charge type";
 
-    $data{'x_amount'}      = $charge->amount;
+    if ( $charge->type =~ /CREDIT|VOID|PRIOR_AUTH_CAPTURE/ ) {
+        $data{'x_trans_id'} = $charge->order_number;
+    }
+
+    $data{'x_amount'}      = $charge->amount->as_float;
     $data{'x_description'} = $charge->description;
+use Data::Dumper;
+print Dumper(\%data);
     return \%data;
 }
 
