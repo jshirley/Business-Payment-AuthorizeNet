@@ -86,8 +86,8 @@ sub prepare_data {
         $data{x_method}   = 'CC';
         $data{x_card_num} = $charge->credit_card->number;
         $data{x_exp_date} = $charge->credit_card->expiration_formatted('%m%y');
-        if ( $charge->csc ) {
-            $data{x_card_code} = $charge->csc;
+        if ( $charge->credit_card->csc ) {
+            $data{x_card_code} = $charge->credit_card->csc;
         }
     }
     $charge->type eq 'VOID' ?
