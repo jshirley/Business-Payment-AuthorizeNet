@@ -109,8 +109,6 @@ sub prepare_data {
 
     $data{'x_amount'}      = $charge->amount->as_float;
     $data{'x_description'} = $charge->description;
-use Data::Dumper;
-print Dumper(\%data);
     return \%data;
 }
 
